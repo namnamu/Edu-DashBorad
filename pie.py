@@ -45,10 +45,6 @@ app.layout = html.Div([
         dcc.Graph(
             id='graph-with-slider'
         ),style={'width': '50%', 'padding': '0px 20px 20px 20px'}),
-    # 조건 확인(아직 안됨.)
-    # html.Div(
-    #     dash_table.DataTable(df.to_dict('records'),[{'매우만족':df.iloc[0, 2],'약간만족':df.iloc[0, 3],'보통':df.iloc[0, 4],'약간불만족':df.iloc[0, 5],'매우불만족':df.iloc[0, 6]} ])
-    # )
 ])
 
 # 조건 이벤트
