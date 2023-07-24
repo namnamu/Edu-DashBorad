@@ -25,15 +25,15 @@ c = '교원수'
 
 
 # 화면 구성 요소
-dropdown=html.Div(
-        dcc.Dropdown(
-            id='crossfilter-dropdown-selection',
-            options=pie_df[dropdown_option].unique(),
-            value=pie_df[dropdown_option].unique()[0], clearable=False
-        ), style={'width': '49%', 'padding': '0px 20px 20px 20px'})
-
 pie = html.Div([
     html.H2(children="만족도 비율",style={'textAlign':'center'}),
+    # 드롭다운
+    html.Div(
+        dcc.Dropdown(
+            id='dropdown-selection-pie',
+            options=pie_df[dropdown_option].unique(),
+            value=pie_df[dropdown_option].unique()[0], clearable=False
+        )),
     # 그래프
     html.Div(
         dcc.Graph(
@@ -51,27 +51,32 @@ pie = html.Div([
             marks={str(year): str(year) for year in pie_df[slider_option].unique()} # 년도를 표기하기 위한 마커
         )
     )
-],style={'width': '39%','display':'inline-block','padding': '0px 20px 20px 20px'})
+],style={'width': '30%','display':'inline-block','padding': '0px 20px 20px 20px'})
 
 line = html.Div([
     html.H2(children='연도별 학생수와 교원수', style={'textAlign': 'center'}),
+    html.Div(
+        dcc.Dropdown(
+            id='dropdown-selection-line',
+            options=pie_df[dropdown_option].unique(),
+            value=pie_df[dropdown_option].unique()[0], clearable=False
+        )),
     dcc.Graph(id='graph-content'),
 
-],style={'width': '39%', 'padding': '0px 20px 20px 20px','display':'inline-block'})
+],style={'width': '30%', 'padding': '0px 20px 20px 20px','display':'inline-block'})
 
 
 
 # 화면 구성
 app.layout=html.Div([
-    dropdown,
     line,
     pie
-])
+],style={'text-align' : 'center'})
 
 # 이벤트
 @callback(
     Output('graph-content', 'figure'),
-    Input('crossfilter-dropdown-selection', 'value'),
+    Input('dropdown-selection-line', 'value'),
 )
 def update_graph(value):
     dff = df[df[dropdown_option] == value]
@@ -96,7 +101,7 @@ def update_graph(value):
 @callback(
     Output('graph-with-slider', 'figure'),
     Input(component_id='crossfilter-year--slider', component_property='value'),
-    Input(component_id='crossfilter-dropdown-selection', component_property='value'))
+    Input(component_id='dropdown-selection-pie', component_property='value'))
 def update_figure(slider_data,dropdown_data):
     pie_df=inputdata(filename)
     
