@@ -22,18 +22,24 @@ dropdown_option = '행정구역별'
 a = '시점'
 b = '재적학생수'
 c = '교원수'
-
+z='만족도환산점수'
 
 # 화면 구성 요소
-pie = html.Div([
-    html.H2(children="만족도 비율",style={'textAlign':'center'}),
+satis_line=html.Div([
+    html.H2(children='연도별 만족도', style={'textAlign':'center'}),
     # 드롭다운
     html.Div(
         dcc.Dropdown(
             id='dropdown-selection-pie',
             options=pie_df[dropdown_option].unique(),
-            value=pie_df[dropdown_option].unique()[0], clearable=False
+            value='전국', clearable=False
         )),
+    # 라인 그래프
+    dcc.Graph(id='graph-content-satis_line') #데코레이터에서 사용함
+],style={'width': '30%', 'padding': '0px 20px 20px 20px','display':'inline-block'})
+
+pie = html.Div([
+    html.H2(children="만족도 ",style={'textAlign':'center'}),
     # 그래프
     html.Div(
         dcc.Graph(
@@ -59,7 +65,7 @@ line = html.Div([
         dcc.Dropdown(
             id='dropdown-selection-line',
             options=pie_df[dropdown_option].unique(),
-            value=pie_df[dropdown_option].unique()[0], clearable=False
+            value='전국', clearable=False
         )),
     dcc.Graph(id='graph-content'),
 
@@ -69,11 +75,45 @@ line = html.Div([
 
 # 화면 구성
 app.layout=html.Div([
+    satis_line,
+    pie,
     line,
-    pie
 ],style={'text-align' : 'center'})
 
-# 이벤트
+# 만족도 라인 이벤트 
+@callback( 
+    Output('graph-content-satis_line', 'figure'), 
+    Input('dropdown-selection-pie', 'value') 
+)
+def update_bar_graph(value):
+    dff = df[df[dropdown_option]==value]
+    
+    fig=go.Figure()
+    
+    fig.add_trace(go.Scatter(name=z,x=dff[a],y=dff[z]))
+
+    fig.update_layout(barmode='group')
+    return fig
+
+# 파이 이벤트 
+@callback(
+    Output('graph-with-slider', 'figure'),
+    Input(component_id='crossfilter-year--slider', component_property='value'),
+    Input(component_id='dropdown-selection-pie', component_property='value'))
+def update_figure(slider_data,dropdown_data):
+    pie_df=inputdata(filename)
+    # 조건 마스킹
+    pie_df=pie_df[pie_df[slider_option].apply(lambda x: True if x==slider_data else False)]
+    pie_df=pie_df[pie_df[dropdown_option].apply(lambda x: True if x==dropdown_data else False)]
+    # 라벨과 값
+    labels = pie_df.columns[2:]
+    values = list(pie_df.iloc[0,2:])
+
+    fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
+    fig.update_layout(transition_duration=500)
+    return fig
+
+# 사람 수 라인 이벤트
 @callback(
     Output('graph-content', 'figure'),
     Input('dropdown-selection-line', 'value'),
@@ -98,22 +138,6 @@ def update_graph(value):
 
     return fig
 
-@callback(
-    Output('graph-with-slider', 'figure'),
-    Input(component_id='crossfilter-year--slider', component_property='value'),
-    Input(component_id='dropdown-selection-pie', component_property='value'))
-def update_figure(slider_data,dropdown_data):
-    pie_df=inputdata(filename)
-    
-    pie_df=pie_df[pie_df[slider_option].apply(lambda x: True if x==slider_data else False)]
-    pie_df=pie_df[pie_df[dropdown_option].apply(lambda x: True if x==dropdown_data else False)]
-    
-    labels = pie_df.columns[2:]
-    values = list(pie_df.iloc[0,2:])
-
-    fig = go.Figure(data=[go.Pie(labels=labels, values=values, hole=.3)])
-    fig.update_layout(transition_duration=500)
-    return fig
 
 if __name__ == '__main__':
     app.run(debug=True)
